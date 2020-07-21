@@ -1,0 +1,76 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+video {
+  background: #69696938;
+  width: 48%;
+  height: 600px;
+  /* transform: rotateY(180deg); */
+  margin: 1%;
+}
+.rong-container {
+  background: #333;
+  min-height: 100%;
+}
+.rong-container .rong-title {
+  margin: 0;
+  padding: 35px 0 10px;;
+  text-align: center;
+  color: #fff;
+  font-size: 30px;
+}
+.rong-container .rong-login-box {
+  width: 100%;
+  border-bottom: 1px solid #333;
+  padding: 10px;
+  text-align: center;
+}
+.rong-container .rong-login-box .rong-input {
+  border-radius: 2px;
+}
+.rong-container .rong-login-box input {
+  width: 150px;
+  height: 38px;
+  margin: 6px;
+  border: none;
+  padding-left: 10px;
+}
+.rong-container .rong-login-box .active{
+  width: 150px;
+  height: 40px;
+  border-radius: 2px;
+  background: #4285F4;
+  border: none;
+  color: #fff;
+  box-shadow: 1px 1px 6px #00000069;
+}
+.rong-container .rong-login-box .success{
+  background: #38c327;
+  color: #fff;
+}
+
+.rong-container .rong-login-box input {
+  transition-duration: .3s;
+  transition-timing-function: ease-in-out;
+  box-shadow: 0 10px 22px #00000069;
+}
+.rong-liveurl-box {
+  width: 90%;
+  margin: 0 auto;
+  color: white;
+  overflow: auto;
+  word-break: break-word;
+}
+.rong-container .rong-video-box {
+  width: 100%;
+  text-align: center;
+}
+.rong-container .rong-logs {
+  border-top: 1px solid #333;
+}
+.rong-container .rong-hide {
+  display: none;
+}

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./config.js"></script>
+  <script src="./im.js"></script>
+  <script src="./util.js"></script>
+  <script src="https://cdn.ronghub.com/RongRTC-3.2.3.js"></script>
+  <script src="https://cdn.ronghub.com/RongIMLib-2.5.8.js"></script>
+  <title>Meeting Demo</title>
+</head>
+
+<body>
+  <div class="rong-container">
+    <h3 class="rong-title"> Web RTC Meeting SDK Demo</h3>
+    <div class="rong-login-box">
+      <input class="rong-input" id="roomId" type="text" value="2020" placeholder="请输入房间号" autocomplete="off">
+      <input class="rong-input" type="button" value="初始化" onclick="connectIM(this)">
+      <input class="rong-input" type="button" value="加入房间" onclick="joinRoom(this)">
+      <input class="rong-input" type="button" value="发布音视频" onclick="publishVideo(this)">
+      <input class="rong-input" type="button" value="离开房间" onclick="leaveRoom(this)">
+      <div class="rong-video-box"></div>
+    </div>
+</body>
+
+<script>
+
+  let rongRTC, rongRoom, rongStream, currentUserId, videoStreamId;
+
+  const VideoTag = 'RongCloudRTC';
+
+  const getDom = (key) => {
+    return document.querySelector(key);
+  };
+
+  const roomIdNode = getDom('#roomId');
+
+  const roomId = location.search.substring(1);
+
+  if (roomId) {
+    roomIdNode.classList.add('rong-hide');
+    roomIdNode.value = roomId;
+  }
+
+  const connectIM = (e) => {
+    setStyle(e);
+    let userId = getUUID();
+    return Http.post('/getToken', { userId }).then(({ token }) => {
+      initIM({ appkey: Config.appkey, token }).then((userId) => {
+        currentUserId = userId;
+        initRTC();
+      });
+    });
+  };
+
+  const initRTC = () => {
+    rongRTC = new RongRTC({ RongIMLib: RongIMLib });
+    rongRoom = new rongRTC.Room({
+      id: roomIdNode.value,
+      joined: function (user) {
+        console.log(user.id + ' 加入房间');
+      },
+      left: function (user) {
+        console.log(user.id + ' 离开房间');
+        let del = document.getElementById(user.id);
+        del.parentNode.removeChild(del);
+      }
+    });
+    rongStream = new rongRTC.Stream({
+      published: subscribeStream,
+      unpublished: function (user) {
+        console.log('stream unpublished', user);
+      },
+      disabled: function (user) {
+        console.log('disabled', user);
+      },
+      enabled: function (user) {
+        console.log('enabled', user);
+      },
+      muted: function (user) {
+        console.log('muted', user);
+      },
+      unmuted: function (user) {
+        console.log('unmuted', user);
+      }
+    });
+    alert('init success')
+  };
+
+  const joinRoom = (e) => {
+    setStyle(e);
+    rongRoom.join({ id: currentUserId }).then(() => {
+      alert('join room success');
+    }).catch((e) => {
+      alert('join error error');
+    });
+  };
+
+  const publishVideo = (e) => {
+    setStyle(e);
+    rongStream.get().then(function ({ mediaStream }) {
+      let user = {
+        id: currentUserId,
+        stream: {
+          tag: VideoTag,
+          type: rongRTC.StreamType.AUDIO_AND_VIDEO,
+          mediaStream: mediaStream
+        }
+      }
+      videoStreamId = mediaStream.id;
+      addUserStream(user);
+
+      rongStream.publish(user).then((result) => {
+        console.log('publish success', result);
+      }, error => {
+        console.log('publish error', error);
+      });
+    }, error => {
+      console.log('get stream error', error);
+    });
+  };
+
+  const subscribeStream = (user) => {
+    rongStream.subscribe(user).then((user) => {
+      addUserStream(user);
+    });
+  }
+
+  const leaveRoom = (e) => {
+    setStyle(e)
+    rongRoom.leave().then(() => {
+      console.log('leave success');
+      removeUserStream();
+    }, error => {
+      console.log(error);
+    });
+  }
+
+  function createVideo(stream) {
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    video.autoplay = true;
+    return video;
+  }
+
+  function addUserStream(user) {
+    const parentDom = document.querySelector('.rong-video-box');
+    const videoDom = createVideo(user.stream.mediaStream);
+    videoDom.id = user.id;
+    parentDom.appendChild(videoDom);
+  }
+
+  function removeUserStream() {
+    const parentDom = document.querySelector('.rong-video-box');
+    parentDom.innerHTML = '';
+  }
+
+  function setStyle(e) {
+    let rongInput = document.getElementsByClassName('rong-input');
+    for (let j = 0, len = rongInput.length; j < len; j++) {
+      rongInput[j].classList.remove('active');
+    }
+    e.classList.add("active");
+  }
+</script>
+
+</html>
